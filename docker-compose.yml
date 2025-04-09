@@ -1,0 +1,62 @@
+services:
+  app:
+    build:
+      context: ./laravel
+      dockerfile: Dockerfile
+    container_name: soultrack-laravel
+    volumes:
+      - ./laravel:/var/www/html
+    depends_on:
+      - mysql
+    networks:
+      - soultrack-net
+
+  next:
+    build:
+      context: ./nextjs
+      dockerfile: Dockerfile
+    container_name: soultrack-next
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./nextjs:/app
+    environment:
+      - NODE_ENV=development
+    networks:
+      - soultrack-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: soultrack-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: soultrack
+      MYSQL_USER: soultrack
+      MYSQL_PASSWORD: secret
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - soultrack-net
+
+  nginx:
+    image: nginx:stable
+    container_name: soultrack-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./laravel:/var/www/html
+      - ./nextjs:/app
+    depends_on:
+      - app
+      - next
+    networks:
+      - soultrack-net
+
+volumes:
+  mysql_data:
+
+networks:
+  soultrack-net:

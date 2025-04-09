@@ -1,0 +1,44 @@
+# Laravel
+/vendor
+/node_modules
+/public/storage
+/storage/*.key
+/storage/pail
+/storage/logs/*.log
+.env
+.env.*
+.phpunit.cache
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+
+# Next.js / Node.js
+**/node_modules
+**/.next
+**/out
+**/dist
+npm-debug.log
+yarn-error.log
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Docker / OS
+*.log
+*.pid
+*.sqlite
+*.sock
+.DS_Store
+
+# IDE / Editor / Dev tools
+.idea
+.vscode
+.fleet
+.zed
+.nova
+.phpactor.json
+
+# Vite / Mix / Hot reload
+/public/hot
+/public/build

@@ -20,3 +20,7 @@ Route::post('/posts', function (Request $request) {
 
     return response()->json($post, 201);
 });
+
+Route::get('/posts', function () {
+    return Post::orderBy('created_at', 'desc')->get();
+});

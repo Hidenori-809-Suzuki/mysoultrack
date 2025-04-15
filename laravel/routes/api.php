@@ -33,6 +33,36 @@ Route::get('/posts', function () {
     return Post::orderBy('created_at', 'desc')->get();
 });
 
+Route::put('/posts/{id}', function (Request $request, $id) {
+    $post = Post::findOrFail($id);
+
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'body' => 'nullable|string',
+        'tags' => 'nullable|array|max:3',
+        'tags.*' => 'nullable|string|max:50',
+        'image' => 'nullable|image|max:2048',
+    ]);
+
+    $post->title = $request->input('title');
+    $post->body = $request->input('body');
+    $post->tags = $request->input('tags', []);
+
+    if ($request->hasFile('image')) {
+        // 旧画像を削除（画像がある場合のみ）
+        if ($post->image_path) {
+            Storage::disk('public')->delete($post->image_path);
+        }
+
+        $imagePath = $request->file('image')->store('images', 'public');
+        $post->image_path = $imagePath;
+    }
+
+    $post->save();
+
+    return response()->json(['message' => 'Updated']);
+});
+
 Route::delete('/posts/{id}', function ($id) {
     $post = Post::findOrFail($id);
 

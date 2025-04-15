@@ -14,7 +14,6 @@ type Post = {
 
 const formatDate = (isoString: string): string => {
   const date = new Date(isoString);
-  // date.setHours(date.getHours() + 9); // JSTへ補正（UTC+9）
   return date.toLocaleString('ja-JP', {
     year: 'numeric',
     month: '2-digit',
@@ -32,6 +31,7 @@ export default function Home() {
   const [body, setBody] = useState('');
   const [tags, setTags] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
 
   useEffect(() => {
@@ -50,6 +50,7 @@ export default function Home() {
     const formData = new FormData();
     formData.append('title', title);
     formData.append('body', body);
+
     const tagList = tags
     .split(',')
     .map((tag) => tag.trim())
@@ -64,7 +65,11 @@ export default function Home() {
       formData.append('image', imageFile);
     }
 
-    const res = await fetch('http://localhost:8080/api/posts', {
+    const endpoint = editingId
+      ? `http://localhost:8080/api/posts/${editingId}?_method=PUT` // ← Laravel用トリック（PUTメソッドサポート）
+      : 'http://localhost:8080/api/posts';
+
+    const res = await fetch(endpoint, {
       method: 'POST',
       body: formData,
     });
@@ -74,9 +79,10 @@ export default function Home() {
       setBody('');
       setTags('');
       setImageFile(null);
+      setEditingId(null);
       fetchPosts();
     } else {
-      alert('投稿失敗。Laravelに怒られたかも');
+      alert('更新失敗。Laravelがなにか文句を言ってるかも');
     }
   };
 
@@ -130,7 +136,7 @@ export default function Home() {
           className="w-full border p-2 rounded"
         />
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
-          投稿
+          {editingId ? '更新' : '投稿'}
         </button>
       </form>
 
@@ -156,6 +162,17 @@ export default function Home() {
                 <span key={idx} className="mr-2">#{tag}</span>
               ))}
             </div>
+            <button
+              onClick={() => {
+                setTitle(post.title);
+                setBody(post.body);
+                setTags(post.tags.join(','));
+                setEditingId(post.id);
+              }}
+              className="mt-2 mr-2 text-green-600 underline"
+            >
+              編集
+            </button>
             <button
               onClick={() => handleDelete(post.id)}
               className="mt-2 text-red-500 underline"

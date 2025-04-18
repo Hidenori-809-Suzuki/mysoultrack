@@ -135,7 +135,7 @@ export default function Home() {
           onChange={(e) => setImageFile(e.target.files?.[0] || null)}
           className="w-full border p-2 rounded"
         />
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-lg font-bold">
           {editingId ? '更新' : '投稿'}
         </button>
       </form>
@@ -144,8 +144,8 @@ export default function Home() {
         {posts.map((post) => (
           <li key={post.id} className="p-4 border rounded shadow">
             <h2 className="text-xl font-semibold">{post.title}</h2>
-            <p className="text-sm text-gray-500">{formatDate(post.created_at)}</p>
-            <p>{post.body}</p>
+            <p className="text-sm text-gray-500 font-bold">{formatDate(post.created_at)}</p>
+            <p className="font-bold">{post.body}</p>
               {post.image_path && (
                 <div className='relative w-full max-w-md h-60'>
                   <Image
@@ -157,28 +157,30 @@ export default function Home() {
                   />
                 </div>
               )}
-            <div className="mt-2 text-sm text-blue-600">
+            <div className="mt-2 text-lg text-blue-600 tracking-wide font-semibold">
               {post.tags.map((tag, idx) => (
                 <span key={idx} className="mr-2">#{tag}</span>
               ))}
             </div>
-            <button
-              onClick={() => {
-                setTitle(post.title);
-                setBody(post.body);
-                setTags(post.tags.join(','));
-                setEditingId(post.id);
-              }}
-              className="mt-2 mr-2 text-green-600 underline"
-            >
-              編集
-            </button>
-            <button
-              onClick={() => handleDelete(post.id)}
-              className="mt-2 text-red-500 underline"
-            >
-              削除
-            </button>
+            <div className="mt-3 border-t pt-4">
+              <button
+                onClick={() => {
+                  setTitle(post.title);
+                  setBody(post.body);
+                  setTags(post.tags.join(','));
+                  setEditingId(post.id);
+                }}
+                className="bg-green-600 text-white px-4 py-2 rounded mr-6 font-semibold text-lg"
+              >
+                編集
+              </button>
+              <button
+                onClick={() => handleDelete(post.id)}
+                className="bg-red-600 text-white px-4 py-2 rounded font-semibold text-lg"
+              >
+                削除
+              </button>
+            </div>
           </li>
         ))}
       </ul>

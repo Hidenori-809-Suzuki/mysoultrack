@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
-    protected $fillable = ['title', 'body', 'tags', 'image_path'];
+    protected $fillable = ['title', 'body', 'image_path'];
 
-    protected $casts = [
-        'tags' => 'array',
-    ];
+    public function tags() {
+        return $this->belongsToMany(Tag::class);
+    }
 }

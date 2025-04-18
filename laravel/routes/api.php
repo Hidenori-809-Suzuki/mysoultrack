@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Post;
+use App\Models\Tag;
 
 Route::post('/posts', function (Request $request) {
     $validated = $request->validate([
@@ -73,4 +74,30 @@ Route::delete('/posts/{id}', function ($id) {
     $post->delete();
 
     return response()->json(['message' => '削除しました']);
+});
+
+// タグ
+
+Route::get('/tags', function () {
+    return Tag::latest()->get();
+});
+
+Route::post('/tags', function (Request $request) {
+    if (Tag::count() >= 15) {
+        return response()->json(['error' => 'タグは15個までです'], 400);
+    }
+
+    $validated = $request->validate([
+        'name' => 'required|string|max:30|unique:tags,name',
+    ]);
+
+    $tag = Tag::create($validated);
+
+    return response()->json($tag);
+});
+
+Route::delete('/tags/{id}', function ($id) {
+    $tag = Tag::findOrFail($id);
+    $tag->delete();
+    return response()->json(['message' => 'タグ削除完了']);
 });

@@ -2,12 +2,13 @@
 
 import { useEffect, useState, FormEvent } from 'react';
 import Image from 'next/image';
+import type { Tag } from '../types';
 
 type Post = {
   id: number;
   title: string;
   body: string;
-  tags: string[];
+  tags: Tag[];
   image_path: string | null;
   created_at: string;
 };
@@ -29,13 +30,18 @@ export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [tags, setTags] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
 
 
   useEffect(() => {
-    fetchPosts();
+    fetch('http://localhost:8080/api/tags')
+      .then((res) => res.json())
+      .then((data) => setAvailableTags(data));
+
+      fetchPosts();
   }, []);
 
   const fetchPosts = () => {
@@ -51,14 +57,8 @@ export default function Home() {
     formData.append('title', title);
     formData.append('body', body);
 
-    const tagList = tags
-    .split(',')
-    .map((tag) => tag.trim())
-    .filter((tag) => tag !== '')
-    .slice(0, 3);
-
-    tagList.forEach((tag, i) => {
-      formData.append(`tags[${i}]`, tag);
+    selectedTagIds.forEach((tagId, i) => {
+      formData.append(`tags[${i}]`, String(tagId));
     });
 
     if (imageFile) {
@@ -77,7 +77,6 @@ export default function Home() {
     if (res.ok) {
       setTitle('');
       setBody('');
-      setTags('');
       setImageFile(null);
       setEditingId(null);
       fetchPosts();
@@ -122,13 +121,22 @@ export default function Home() {
           className="w-full border p-2 rounded"
           rows={4}
         />
-        <input
-          type="text"
-          placeholder="タグ（カンマ区切り3つまで）"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
+        <select
+          multiple
+          value={selectedTagIds.map(String)}
+          onChange={(e) => {
+            const options = Array.from(e.target.selectedOptions);
+            const ids = options.map((opt) => Number(opt.value)).slice(0, 3);
+            setSelectedTagIds(ids);
+          }}
           className="w-full border p-2 rounded"
-        />
+        >
+          {availableTags.map(tag => (
+            <option key={tag.id} value={tag.id}>
+              {tag.name}
+            </option>
+          ))}
+        </select>
         <input
           type="file"
           accept="image/*"
@@ -158,8 +166,8 @@ export default function Home() {
                 </div>
               )}
             <div className="mt-2 text-lg text-blue-600 tracking-wide font-semibold">
-              {post.tags.map((tag, idx) => (
-                <span key={idx} className="mr-2">#{tag}</span>
+              {post.tags.map((tag) => (
+                <span key={tag.id} className="mr-2">#{tag.name}</span>
               ))}
             </div>
             <div className="mt-3 border-t pt-4">
@@ -167,7 +175,7 @@ export default function Home() {
                 onClick={() => {
                   setTitle(post.title);
                   setBody(post.body);
-                  setTags(post.tags.join(','));
+                  setSelectedTagIds(post.tags.map((tag) => tag.id));
                   setEditingId(post.id);
                 }}
                 className="bg-green-600 text-white px-4 py-2 rounded mr-6 font-semibold text-lg"

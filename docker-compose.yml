@@ -4,6 +4,8 @@ services:
       context: ./laravel
       dockerfile: Dockerfile
     container_name: soultrack-laravel
+    ports:
+      - "8000:80"
     volumes:
       - ./laravel:/var/www/html
     depends_on:

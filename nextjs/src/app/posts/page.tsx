@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from 'react';
 import Image from 'next/image';
 import type { Tag } from '../../types';
+import Select, { StylesConfig } from 'react-select';
 
 type Post = {
   id: number;
@@ -26,6 +27,52 @@ const formatDate = (isoString: string): string => {
   });
 };
 
+type Option = {
+  value: number;
+  label: string;
+};
+
+const customStyles: StylesConfig<Option, true> = {
+  control: (base) => ({
+    ...base,
+    backgroundColor: '#1a1a1a', // ダーク背景
+    borderColor: '#555',
+    color: 'white',
+  }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: '#1a1a1a',
+    color: 'white',
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isFocused ? '#333' : '#1a1a1a',
+    color: 'white',
+    cursor: 'pointer',
+  }),
+  singleValue: (base) => ({
+    ...base,
+    color: 'white',
+  }),
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: '#333',
+  }),
+  multiValueLabel: (base) => ({
+    ...base,
+    color: 'white',
+  }),
+  multiValueRemove: (base) => ({
+    ...base,
+    color: '#aaa',
+    ':hover': {
+      backgroundColor: '#555',
+      color: 'white',
+    },
+  }),
+};
+
+
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [title, setTitle] = useState('');
@@ -34,7 +81,13 @@ export default function Home() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+  const [existingImagePath, setExistingImagePath] = useState<string | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
 
+  const tagOptions = availableTags.map(tag => ({
+    value: tag.id,
+    label: tag.name,
+  }));
 
   useEffect(() => {
     fetch('http://localhost:8080/api/tags')
@@ -61,6 +114,10 @@ export default function Home() {
       formData.append(`tags[${i}]`, String(tagId));
     });
 
+    if (removeImage) {
+      formData.append('remove_image', 'true');
+    }
+
     if (imageFile) {
       formData.append('image', imageFile);
     }
@@ -78,7 +135,9 @@ export default function Home() {
       setTitle('');
       setBody('');
       setImageFile(null);
+      setSelectedTagIds([]);
       setEditingId(null);
+      setRemoveImage(false);
       fetchPosts();
     } else {
       alert('更新失敗。Laravelがなにか文句を言ってるかも');
@@ -121,28 +180,38 @@ export default function Home() {
           className="w-full border p-2 rounded"
           rows={4}
         />
-        <select
-          multiple
-          value={selectedTagIds.map(String)}
-          onChange={(e) => {
-            const options = Array.from(e.target.selectedOptions);
-            const ids = options.map((opt) => Number(opt.value)).slice(0, 3);
+        <Select
+          isMulti
+          options={tagOptions}
+          value={tagOptions.filter(option => selectedTagIds.includes(option.value))}
+          onChange={(selectedOptions) => {
+            const ids = (selectedOptions || [])
+              .map(option => option.value)
+              .slice(0, 3); // 最大3つまで
             setSelectedTagIds(ids);
           }}
-          className="w-full border p-2 rounded"
-        >
-          {availableTags.map(tag => (
-            <option key={tag.id} value={tag.id}>
-              {tag.name}
-            </option>
-          ))}
-        </select>
+          styles={customStyles}
+          className="w-full"
+          classNamePrefix="select"
+          placeholder="タグを選択（任意）"
+        />
         <input
           type="file"
           accept="image/*"
           onChange={(e) => setImageFile(e.target.files?.[0] || null)}
           className="w-full border p-2 rounded"
         />
+        {existingImagePath && (
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="removeImage"
+              checked={removeImage}
+              onChange={(e) => setRemoveImage(e.target.checked)}
+            />
+            <label htmlFor="removeImage" className="text-sm text-red-500 font-semibold">画像を削除する</label>
+          </div>
+        )}
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-lg font-bold">
           {editingId ? '更新' : '投稿'}
         </button>
@@ -177,6 +246,8 @@ export default function Home() {
                   setBody(post.body);
                   setSelectedTagIds(post.tags.map((tag) => tag.id));
                   setEditingId(post.id);
+                  setExistingImagePath(post.image_path);
+                  setRemoveImage(false);
                 }}
                 className="bg-green-600 text-white px-4 py-2 rounded mr-6 font-semibold text-lg"
               >

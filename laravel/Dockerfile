@@ -21,4 +21,5 @@ WORKDIR /var/www/html
 # 権限設定（開発用途向け、雑にやってるから本番ではちゃんとやれ）
 RUN chown -R www-data:www-data /var/www/html
 
+CMD ["php-fpm"]
 # Laravel起動時のENTRYPOINTは docker-compose.yml でコントロールする

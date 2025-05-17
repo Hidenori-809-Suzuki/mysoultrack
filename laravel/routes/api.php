@@ -49,6 +49,13 @@ Route::put('/posts/{id}', function (Request $request, $id) {
     $post->title = $validated['title'];
     $post->body = $validated['body'] ?? '';
 
+    if ($request->has('remove_image') && $request->boolean('remove_image')) {
+        if ($post->image_path && Storage::disk('public')->exists($post->image_path)) {
+            Storage::disk('public')->delete($post->image_path);
+            $post->image_path = null;
+        }
+    }
+
     if ($request->hasFile('image')) {
         if ($post->image_path) {
             Storage::disk('public')->delete($post->image_path);

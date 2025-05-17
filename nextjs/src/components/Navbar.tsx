@@ -9,6 +9,11 @@ export default function Navbar() {
         <ul className="flex justify-center space-x-8">
           <li>
             <Link href="/" className="hover:underline">
+              管理パネル
+            </Link>
+          </li>
+          <li>
+            <Link href="/posts" className="hover:underline">
               投稿ページ
             </Link>
           </li>

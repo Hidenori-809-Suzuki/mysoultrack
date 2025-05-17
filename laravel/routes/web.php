@@ -13,8 +13,12 @@ Route::get('/laravel-check', function () {
     return 'Laravel is alive!';
 });
 
+Route::middleware('web')->get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+});
+
 // ここが重要！！！！ middlewareは "api" だけ
-Route::prefix('api')->middleware('api')->group(function () {
+Route::prefix('api')->middleware(['web'])->group(function () {
 
     Route::get('/ping', fn () => response()->json(['message' => 'pong']));
 

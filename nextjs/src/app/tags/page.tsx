@@ -47,6 +47,12 @@ export default function TagsPage() {
       return;
     }
 
+    // CSRF Cookie セット
+    await fetch(`${baseURL}/sanctum/csrf-cookie`, {
+      credentials: 'include',
+    });
+
+
     const csrfToken = getCsrfToken();
     if (!csrfToken) {
       setError('CSRFトークン取得失敗');

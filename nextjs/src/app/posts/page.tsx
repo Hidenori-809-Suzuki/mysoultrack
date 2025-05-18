@@ -4,6 +4,7 @@ import { useEffect, useState, FormEvent } from 'react';
 import Image from 'next/image';
 import type { Tag } from '../../types';
 import Select, { StylesConfig } from 'react-select';
+import { useRef } from 'react';
 
 type Post = {
   id: number;
@@ -83,6 +84,8 @@ export default function Home() {
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [existingImagePath, setExistingImagePath] = useState<string | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   const tagOptions = availableTags.map(tag => ({
     value: tag.id,
@@ -137,7 +140,11 @@ export default function Home() {
       setImageFile(null);
       setSelectedTagIds([]);
       setEditingId(null);
+      setExistingImagePath(null);
       setRemoveImage(false);
+      if (formRef.current) {
+        formRef.current.reset();
+      }
       fetchPosts();
     } else {
       alert('更新失敗。Laravelがなにか文句を言ってるかも');
@@ -164,7 +171,7 @@ export default function Home() {
     <main className="p-6 max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">SoulTrack 🧠</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4 mb-10">
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 mb-10">
         <input
           type="text"
           placeholder="タイトル"
@@ -200,6 +207,7 @@ export default function Home() {
           accept="image/*"
           onChange={(e) => setImageFile(e.target.files?.[0] || null)}
           className="w-full border p-2 rounded"
+          ref={imageInputRef}
         />
         {existingImagePath && (
           <div className="flex items-center space-x-2">
@@ -248,6 +256,7 @@ export default function Home() {
                   setEditingId(post.id);
                   setExistingImagePath(post.image_path);
                   setRemoveImage(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="bg-green-600 text-white px-4 py-2 rounded mr-6 font-semibold text-lg"
               >
